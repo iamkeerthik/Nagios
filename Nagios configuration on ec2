@@ -1,0 +1,85 @@
+Nagios configuration on amazon ec2
+
+1.Launch a ec2 linux machine with ssh and http
+
+Installing Prerequisites
+-> sudo su
+-> yum install httpd php
+-> yum install gcc glibc glibc-common
+-> yum install gd gd-devel
+
+Create new user
+-> adduser -m nagios
+-> passwd nagios
+
+Create a group and add nagios user
+-> groupadd nagioscmd
+-> usermod -a -G nagioscmd nagios
+-> usermod -a -G nagioscmd apache
+
+Create and Downloads directory and download nagios core and plugins in it.
+-> mkdir ~/downloads
+-> cd ~/downloads
+
+-> wget wget https://liquidtelecom.dl.sourceforge.net/project/nagios/nagios-4.x/nagios-4.0.8/nagios-4.0.8.tar.gz
+
+-> wget wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
+
+ Extract core and  change directory that folder
+-> tar zxvf nagios-4.0.8.tar.gz
+-> cd nagios-4.0.8
+
+Run configuration script with the usergroup name you created previously
+-> ./configure --with-command-group=nagioscmd
+
+Compile the nagios source code
+-> make all
+
+Install binaries, init script, sample config files & set permission on the external command directly
+
+-> make install
+-> make install-init
+-> make install-config
+-> make install-commandmode
+
+Configure web interface
+-> make install-webconf
+
+Create a "nagiosadmin" account for login into the nagios web interface & set password as well.
+
+-> htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+  //set password
+-> service httpd restart
+
+
+Compile and install nagios plugins
+
+-> cd ~/downloads
+-> tar zxvf nagios-plugins-2.0.3.tar.gz
+-> cd nagios-plugins-2.0.3
+
+Run configuration file
+-> ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+
+Compile source code
+-> make
+-> make install
+
+Start nagios, add nagios to the list of system services & have it automatically start with system boot.
+-> chkconfig --add nagios
+-> chkconfig nagios on
+
+
+Verify the sample nagios configuration file
+-> /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+-> service nagios start
+-> service httpd restart
+
+-> to access Nagios server
+go to browser and open <instance_pulic_ip>/nagios
+give web interface username and password (e.g: nagiosadmin & password)
+
+
+
+
